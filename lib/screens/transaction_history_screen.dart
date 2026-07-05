@@ -1,10 +1,13 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../config/supabase_config.dart';
+import '../models/transaction.dart';
 import '../services/extraction_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/arco_components.dart';
+import '../utils/formatters.dart';
+import '../utils/transaction_labels.dart';
+import '../widgets/type_chip.dart';
 import 'party_balances_screen.dart';
 import 'transaction_detail_screen.dart';
 
@@ -18,26 +21,17 @@ class TransactionHistoryScreen extends StatefulWidget {
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   int _tabIndex = 0;
-  late final ExtractionService _service;
   late Future<List<TransactionSummary>> _future;
 
   @override
   void initState() {
     super.initState();
-    final dio = Dio(
-      BaseOptions(
-        baseUrl: ApiConfig.baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-      ),
-    );
-    _service = ExtractionService(dio);
-    _future = _service.getTransactions();
+    _future = context.read<ExtractionService>().getTransactions();
   }
 
   void _refresh() {
     setState(() {
-      _future = _service.getTransactions();
+      _future = context.read<ExtractionService>().getTransactions();
     });
   }
 
@@ -52,11 +46,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         ),
         Expanded(
           child: _tabIndex == 0
-              ? _TransactionsTab(
-                  future: _future,
-                  onRefresh: _refresh,
-                  service: _service,
-                )
+              ? _TransactionsTab(future: _future, onRefresh: _refresh)
               : const PartyBalancesScreen(),
         ),
       ],
@@ -67,12 +57,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 class _TransactionsTab extends StatelessWidget {
   final Future<List<TransactionSummary>> future;
   final VoidCallback onRefresh;
-  final ExtractionService service;
 
   const _TransactionsTab({
     required this.future,
     required this.onRefresh,
-    required this.service,
   });
 
   @override
@@ -97,7 +85,7 @@ class _TransactionsTab extends StatelessWidget {
             itemCount: transactions.length,
             separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.s3),
             itemBuilder: (context, i) =>
-                _TransactionCard(tx: transactions[i], service: service),
+                _TransactionCard(tx: transactions[i]),
           );
         },
       ),
@@ -149,7 +137,11 @@ class _TransactionsTab extends StatelessWidget {
               style: AppText.body.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: AppSpacing.s2),
-            TextButton(onPressed: onRefresh, child: const Text('Retry')),
+            ArcoButton(
+              label: 'Retry',
+              variant: ArcoButtonVariant.ghost,
+              onPressed: onRefresh,
+            ),
           ],
         ),
       ),
@@ -159,34 +151,15 @@ class _TransactionsTab extends StatelessWidget {
 
 class _TransactionCard extends StatelessWidget {
   final TransactionSummary tx;
-  final ExtractionService service;
 
-  const _TransactionCard({required this.tx, required this.service});
-
-  static const _docTypeLabels = {
-    'sales_slip': 'Sales Slip',
-    'price_list': 'Price List',
-    'distribution_record': 'Distribution',
-    'account_ledger': 'Ledger',
-    'calculation_note': 'Calculation',
-    'unknown': 'Unknown',
-  };
-
-  static const _docTypeColors = {
-    'sales_slip': AppColors.accent,
-    'price_list': AppColors.accent,
-    'distribution_record': AppColors.accent,
-    'account_ledger': AppColors.warning,
-    'calculation_note': AppColors.success,
-    'unknown': AppColors.text3,
-  };
+  const _TransactionCard({required this.tx});
 
   @override
   Widget build(BuildContext context) {
     final party = tx.partyNameRoman ?? tx.partyNameUrdu ?? 'Unknown party';
-    final date = _formatDate(tx.transactionDate);
-    final label = _docTypeLabels[tx.documentType] ?? tx.documentType ?? 'Doc';
-    final chipColor = _docTypeColors[tx.documentType] ?? AppColors.text3;
+    final date = formatTxDate(tx.transactionDate);
+    final label = docTypeLabel(tx.documentType);
+    final chipColor = docTypeColor(tx.documentType);
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -194,7 +167,6 @@ class _TransactionCard extends StatelessWidget {
         MaterialPageRoute(
           builder: (_) => TransactionDetailScreen(
             transactionId: tx.id,
-            service: service,
             initialPartyName: party,
           ),
         ),
@@ -233,7 +205,7 @@ class _TransactionCard extends StatelessWidget {
                       const SizedBox(width: AppSpacing.s1),
                       Text(date, style: AppText.caption),
                       const SizedBox(width: AppSpacing.s3),
-                      _TypeChip(label: label, color: chipColor),
+                      ArcoTypeChip(label: label, color: chipColor),
                     ],
                   ),
                   if (tx.notes != null && tx.notes!.isNotEmpty) ...[
@@ -252,7 +224,7 @@ class _TransactionCard extends StatelessWidget {
             ),
             if (tx.totalAmount != null)
               Text(
-                'PKR ${_formatAmount(tx.totalAmount!)}',
+                'PKR ${formatPkr(tx.totalAmount!)}',
                 style: AppText.body.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.accent,
@@ -261,52 +233,6 @@ class _TransactionCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  String _formatDate(String? iso) {
-    if (iso == null) return 'No date';
-    try {
-      final d = DateTime.parse(iso);
-      return '${d.day.toString().padLeft(2, '0')}/'
-          '${d.month.toString().padLeft(2, '0')}/'
-          '${d.year}';
-    } catch (_) {
-      return iso;
-    }
-  }
-
-  String _formatAmount(double amount) {
-    if (amount >= 1000) {
-      return amount
-          .toStringAsFixed(0)
-          .replaceAllMapped(
-            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-            (m) => '${m[1]},',
-          );
-    }
-    return amount.toStringAsFixed(0);
-  }
-}
-
-class _TypeChip extends StatelessWidget {
-  final String label;
-  final Color color;
-
-  const _TypeChip({required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s2,
-        vertical: 2,
-      ),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: AppRadius.rPill,
-      ),
-      child: Text(label, style: AppText.chip.copyWith(color: color)),
     );
   }
 }

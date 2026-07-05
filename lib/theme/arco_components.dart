@@ -408,14 +408,19 @@ class ArcoPanel extends StatelessWidget {
 }
 
 class ArcoDivider extends StatelessWidget {
-  const ArcoDivider({super.key});
+  const ArcoDivider({super.key, this.indent, this.endIndent});
+
+  final double? indent;
+  final double? endIndent;
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(
+    return Divider(
       height: 1,
       thickness: 1,
       color: AppColors.borderSubtle,
+      indent: indent,
+      endIndent: endIndent,
     );
   }
 }

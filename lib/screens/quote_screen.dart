@@ -24,7 +24,6 @@ class _QuoteScreenState extends State<QuoteScreen> {
   final _emailController = TextEditingController();
   final _quantityController = TextEditingController();
   final _notesController = TextEditingController();
-  late final ApiService _apiService;
 
   bool _isLoading = false;
   bool _submitted = false;
@@ -46,7 +45,6 @@ class _QuoteScreenState extends State<QuoteScreen> {
   void initState() {
     super.initState();
     final auth = context.read<AuthProvider>();
-    _apiService = ApiService(accessTokenProvider: () => auth.accessToken);
     final email = auth.userEmail;
     if (email != null && email.isNotEmpty) {
       _emailController.text = email;
@@ -86,7 +84,8 @@ class _QuoteScreenState extends State<QuoteScreen> {
       notes: _notesController.text.trim(),
     );
 
-    final response = await _apiService.requestQuote(request);
+    final response =
+        await context.read<ApiService>().requestQuote(request);
 
     setState(() {
       _isLoading = false;

@@ -1,8 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
-import '../config/supabase_config.dart';
 import '../services/extraction_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/arco_components.dart';
@@ -19,20 +18,6 @@ class _ImportDocumentScreenState extends State<ImportDocumentScreen> {
   final _picker = ImagePicker();
   bool _loading = false;
   String? _errorMessage;
-  late final ExtractionService _extractionService;
-
-  @override
-  void initState() {
-    super.initState();
-    final dio = Dio(
-      BaseOptions(
-        baseUrl: ApiConfig.baseUrl,
-        connectTimeout: const Duration(seconds: 180),
-        receiveTimeout: const Duration(seconds: 180),
-      ),
-    );
-    _extractionService = ExtractionService(dio);
-  }
 
   Future<void> _pickAndExtract(ImageSource source) async {
     setState(() {
@@ -40,6 +25,7 @@ class _ImportDocumentScreenState extends State<ImportDocumentScreen> {
       _errorMessage = null;
     });
 
+    final service = context.read<ExtractionService>();
     final picked = await _picker.pickImage(
       source: source,
       imageQuality: 90,
@@ -50,17 +36,14 @@ class _ImportDocumentScreenState extends State<ImportDocumentScreen> {
     setState(() => _loading = true);
 
     try {
-      final result = await _extractionService.extractDocument(picked);
+      final result = await service.extractDocument(picked);
       if (!mounted) return;
       setState(() => _loading = false);
 
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ExtractionReviewScreen(
-            result: result,
-            extractionService: _extractionService,
-          ),
+          builder: (_) => ExtractionReviewScreen(result: result),
         ),
       );
     } catch (e) {

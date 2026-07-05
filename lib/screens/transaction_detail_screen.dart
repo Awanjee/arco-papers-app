@@ -1,69 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
+import '../models/transaction.dart';
 import '../services/extraction_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/arco_components.dart';
-
-// ---------------------------------------------------------------------------
-// Product code helpers
-// ---------------------------------------------------------------------------
-
-const _sizeExpansions = {
-  'a/4': 'A4',
-  'a4': 'A4',
-  'f/s': 'Foolscap',
-  'f15': 'Foolscap',
-  'a/3': 'A3',
-  '9x4': '9×4"',
-  '11x5': '11×5"',
-  '8x10': '8×10"',
-  '9x6': '9×6"',
-  '7x5': '7×5"',
-  '7.5x5': '7.5×5"',
-};
-
-const _typeExpansions = {
-  'prt': 'Print',
-  'print': 'Print',
-  'dcp': 'Digital Copy',
-  'g-2': 'Grade 2',
-  'g2': 'Grade 2',
-  'usa': 'USA Import',
-  'windo': 'Window',
-  'window': 'Window',
-  'callon': 'Carbon Copy',
-  'callory': 'Carbon Copy',
-  'open': 'Offset',
-};
-
-String expandProductCode(String? raw) {
-  if (raw == null || raw.trim().isEmpty) return 'Unknown';
-  final parts = raw.trim().split(RegExp(r'[-/\s]+'));
-  final expanded = parts
-      .map((p) {
-        final lower = p.toLowerCase();
-        return _sizeExpansions[lower] ??
-            _typeExpansions[lower] ??
-            p.toUpperCase();
-      })
-      .join(' ');
-  return expanded;
-}
-
-// ---------------------------------------------------------------------------
-// Screen
-// ---------------------------------------------------------------------------
+import '../utils/formatters.dart';
+import '../utils/transaction_labels.dart';
+import '../widgets/type_chip.dart';
 
 class TransactionDetailScreen extends StatefulWidget {
   final String transactionId;
-  final ExtractionService service;
-  final String? initialPartyName; // shown while loading
+  final String? initialPartyName;
 
   const TransactionDetailScreen({
     super.key,
     required this.transactionId,
-    required this.service,
     this.initialPartyName,
   });
 
@@ -78,7 +31,9 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _future = widget.service.getTransactionDetail(widget.transactionId);
+    _future = context
+        .read<ExtractionService>()
+        .getTransactionDetail(widget.transactionId);
   }
 
   @override
@@ -128,53 +83,24 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Body
-// ---------------------------------------------------------------------------
-
 class _TransactionDetailBody extends StatelessWidget {
   final TransactionDetail tx;
 
   const _TransactionDetailBody({required this.tx});
 
-  static const _txTypeLabels = {
-    'sale': 'Sale',
-    'payment_received': 'Payment',
-    'purchase': 'Purchase',
-    'expense': 'Expense',
-  };
-
-  static const _txTypeColors = {
-    'sale': AppColors.accent,
-    'payment_received': AppColors.accent,
-    'purchase': AppColors.accent,
-    'expense': AppColors.warning,
-  };
-
-  static const _docTypeLabels = {
-    'sales_slip': 'Sales Slip',
-    'price_list': 'Price List',
-    'distribution_record': 'Distribution',
-    'account_ledger': 'Ledger',
-    'calculation_note': 'Calculation',
-    'unknown': 'Unknown',
-  };
-
   @override
   Widget build(BuildContext context) {
     final txType = tx.transactionType ?? 'sale';
-    final txColor = _txTypeColors[txType] ?? AppColors.text3;
-    final txLabel = _txTypeLabels[txType] ?? txType;
-    final docLabel =
-        _docTypeLabels[tx.documentType] ?? tx.documentType ?? 'Doc';
+    final txColor = txTypeColor(txType, detailScreen: true);
+    final txLabel = txTypeLabel(txType);
+    final docLabel = docTypeLabel(tx.documentType);
     final party = tx.partyNameRoman ?? tx.partyNameUrdu ?? 'Unknown party';
-    final date = _formatDate(tx.transactionDate);
+    final date = formatTxDate(tx.transactionDate);
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.s4),
       children: [
-        // Header card
-        _Card(
+        ArcoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -188,13 +114,12 @@ class _TransactionDetailBody extends StatelessWidget {
                       ),
                     ),
                   ),
-                  _Chip(label: txLabel, color: txColor),
+                  ArcoTypeChip(label: txLabel, color: txColor),
                 ],
               ),
-              // Urdu name if present and different
               if (tx.partyNameUrdu != null &&
                   tx.partyNameUrdu != tx.partyNameRoman) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.s1),
                 Directionality(
                   textDirection: TextDirection.rtl,
                   child: Text(
@@ -206,30 +131,30 @@ class _TransactionDetailBody extends StatelessWidget {
                   ),
                 ),
               ],
-              const SizedBox(height: 12),
-              const Divider(height: 1),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.s3),
+              const ArcoDivider(),
+              const SizedBox(height: AppSpacing.s3),
               _MetaRow(icon: Icons.calendar_today_outlined, label: date),
-              const SizedBox(height: 6),
+              const SizedBox(height: AppSpacing.s2),
               _MetaRow(icon: Icons.description_outlined, label: docLabel),
               if (tx.notes != null && tx.notes!.isNotEmpty) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: AppSpacing.s2),
                 _MetaRow(
                   icon: Icons.notes_outlined,
                   label: tx.notes!,
                   italic: true,
                 ),
               ],
-              const SizedBox(height: 12),
-              const Divider(height: 1),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.s3),
+              const ArcoDivider(),
+              const SizedBox(height: AppSpacing.s3),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Total', style: AppText.label),
                   Text(
                     tx.totalAmount != null
-                        ? 'PKR ${_formatAmount(tx.totalAmount!)}'
+                        ? 'PKR ${formatPkr(tx.totalAmount!)}'
                         : 'N/A',
                     style: AppText.h3.copyWith(color: txColor),
                   ),
@@ -238,15 +163,12 @@ class _TransactionDetailBody extends StatelessWidget {
             ],
           ),
         ),
-
-        const SizedBox(height: 16),
-
-        // Line items
+        const SizedBox(height: AppSpacing.s4),
         if (tx.lineItems.isEmpty)
-          _Card(
+          ArcoCard(
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.s6),
                 child: Text(
                   'No line items recorded',
                   style: AppText.small.copyWith(color: AppColors.text3),
@@ -256,21 +178,23 @@ class _TransactionDetailBody extends StatelessWidget {
           )
         else ...[
           Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 8),
+            padding: const EdgeInsets.only(
+              left: AppSpacing.s1,
+              bottom: AppSpacing.s2,
+            ),
             child: Text(
               'Line Items (${tx.lineItems.length})',
               style: AppText.overline,
             ),
           ),
-          _Card(
+          ArcoCard(
             padding: EdgeInsets.zero,
             child: Column(
               children: [
-                // Column headers
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
+                    horizontal: AppSpacing.s4,
+                    vertical: AppSpacing.s3,
                   ),
                   child: Row(
                     children: [
@@ -297,7 +221,7 @@ class _TransactionDetailBody extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Divider(height: 1),
+                const ArcoDivider(),
                 ...tx.lineItems.asMap().entries.map((entry) {
                   final isLast = entry.key == tx.lineItems.length - 1;
                   return _LineItemRow(
@@ -310,40 +234,11 @@ class _TransactionDetailBody extends StatelessWidget {
             ),
           ),
         ],
-
-        const SizedBox(height: 32),
+        const SizedBox(height: AppSpacing.s8),
       ],
     );
   }
-
-  String _formatDate(String? iso) {
-    if (iso == null) return 'No date';
-    try {
-      final d = DateTime.parse(iso);
-      return '${d.day.toString().padLeft(2, '0')}/'
-          '${d.month.toString().padLeft(2, '0')}/'
-          '${d.year}';
-    } catch (_) {
-      return iso;
-    }
-  }
-
-  String _formatAmount(double amount) {
-    if (amount >= 1000) {
-      return amount
-          .toStringAsFixed(0)
-          .replaceAllMapped(
-            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-            (m) => '${m[1]},',
-          );
-    }
-    return amount.toStringAsFixed(0);
-  }
 }
-
-// ---------------------------------------------------------------------------
-// Line item row
-// ---------------------------------------------------------------------------
 
 class _LineItemRow extends StatelessWidget {
   final TransactionLineItem item;
@@ -365,20 +260,22 @@ class _LineItemRow extends StatelessWidget {
     final qtyStr = item.quantity?.toStringAsFixed(
       item.quantity! == item.quantity!.truncateToDouble() ? 0 : 1,
     );
-    final priceStr = item.unitPrice != null ? _fmt(item.unitPrice!) : null;
+    final priceStr = item.unitPrice != null ? formatAmount(item.unitPrice!) : null;
     final qtyPrice = (qtyStr != null && priceStr != null)
         ? '$qtyStr × $priceStr'
         : null;
-    final amountStr = item.amount != null ? _fmt(item.amount!) : null;
+    final amountStr = item.amount != null ? formatAmount(item.amount!) : null;
 
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s4,
+            vertical: AppSpacing.s3,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Product
               Expanded(
                 flex: 5,
                 child: Column(
@@ -388,7 +285,7 @@ class _LineItemRow extends StatelessWidget {
                       children: [
                         if (lowConfidence)
                           Padding(
-                            padding: const EdgeInsets.only(right: 4),
+                            padding: const EdgeInsets.only(right: AppSpacing.s1),
                             child: Icon(
                               Icons.warning_amber_rounded,
                               size: 13,
@@ -431,7 +328,6 @@ class _LineItemRow extends StatelessWidget {
                   ],
                 ),
               ),
-              // Qty × Price
               Expanded(
                 flex: 3,
                 child: Text(
@@ -440,7 +336,6 @@ class _LineItemRow extends StatelessWidget {
                   style: AppText.small,
                 ),
               ),
-              // Amount
               Expanded(
                 flex: 2,
                 child: Text(
@@ -455,59 +350,12 @@ class _LineItemRow extends StatelessWidget {
             ],
           ),
         ),
-        if (!isLast) const Divider(height: 1, indent: 16, endIndent: 16),
+        if (!isLast)
+          const ArcoDivider(
+            indent: AppSpacing.s4,
+            endIndent: AppSpacing.s4,
+          ),
       ],
-    );
-  }
-
-  String _fmt(double v) {
-    if (v >= 1000) {
-      return v
-          .toStringAsFixed(0)
-          .replaceAllMapped(
-            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-            (m) => '${m[1]},',
-          );
-    }
-    return v % 1 == 0 ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Small reusable widgets
-// ---------------------------------------------------------------------------
-
-class _Card extends StatelessWidget {
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-
-  const _Card({required this.child, this.padding});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: AppDecorations.card(),
-      padding: padding ?? const EdgeInsets.all(AppSpacing.s4),
-      child: child,
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  final String label;
-  final Color color;
-
-  const _Chip({required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(label, style: AppText.chip.copyWith(color: color)),
     );
   }
 }
@@ -528,7 +376,7 @@ class _MetaRow extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 14, color: AppColors.text3),
-        const SizedBox(width: 6),
+        const SizedBox(width: AppSpacing.s2),
         Expanded(
           child: Text(
             label,

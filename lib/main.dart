@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/chat_provider.dart';
+import 'providers/services_provider.dart';
 import 'theme/app_theme.dart';
 import 'widgets/auth_gate.dart';
 
@@ -21,13 +22,22 @@ class IstatisApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AuthProvider()..init(),
         ),
-        ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, ChatProvider>(
+          create: (_) => ChatProvider(),
+          update: (_, auth, chat) {
+            chat ??= ChatProvider();
+            chat.updateApiService(auth);
+            return chat;
+          },
+        ),
       ],
-      child: MaterialApp(
+      child: ServicesProvider(
+        child: MaterialApp(
         title: 'iStatis',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.dark,
         home: const AuthGate(),
+        ),
       ),
     );
   }

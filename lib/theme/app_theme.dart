@@ -43,12 +43,6 @@ class AppColors {
   static final successSoft = success.withOpacity(0.12);
   static final warningSoft = warning.withOpacity(0.12);
   static final dangerSoft = danger.withOpacity(0.12);
-
-  // legacy aliases
-  static const primary = accent;
-  static const background = canvas;
-  static const card = surface1;
-  static const muted = text3;
 }
 
 /// ----------------------------- RADIUS -----------------------------
@@ -139,7 +133,12 @@ class AppText {
       _sans(12, FontWeight.w600, color: AppColors.text2);
   static TextStyle get overline =>
       _sans(11, FontWeight.w700, spacing: 0.8, color: AppColors.text3);
-  static TextStyle get button => _sans(14.5, FontWeight.w600);
+  static TextStyle get button =>
+      GoogleFonts.plusJakartaSans(
+        fontSize: 14.5,
+        fontWeight: FontWeight.w600,
+        height: 1.3,
+      );
   static TextStyle get eyebrow => GoogleFonts.jetBrainsMono(
     fontSize: 11,
     fontWeight: FontWeight.w500,
@@ -197,12 +196,6 @@ class AppTheme {
   static ThemeData get light => dark;
 
   static ThemeData get dark => _buildDark();
-}
-
-/// Alias matching arco_theme.dart naming.
-class ArcoTheme {
-  ArcoTheme._();
-  static ThemeData get dark => AppTheme.dark;
 }
 
 ThemeData _buildDark() {

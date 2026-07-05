@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/extraction_result.dart';
 import '../services/extraction_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/arco_components.dart';
+import '../utils/formatters.dart';
+import '../utils/transaction_labels.dart';
 
 class ExtractionReviewScreen extends StatefulWidget {
   final ExtractionResult result;
-  final ExtractionService extractionService;
 
   const ExtractionReviewScreen({
     super.key,
     required this.result,
-    required this.extractionService,
   });
 
   @override
@@ -65,7 +66,7 @@ class _ExtractionReviewScreenState extends State<ExtractionReviewScreen> {
       _saveError = null;
     });
     try {
-      await widget.extractionService.confirmExtraction(
+      await context.read<ExtractionService>().confirmExtraction(
         result: widget.result,
         editedPartyName: _partyCtrl.text.trim().isEmpty
             ? null
@@ -99,9 +100,7 @@ class _ExtractionReviewScreenState extends State<ExtractionReviewScreen> {
         ? _dateCtrl.text.trim()
         : 'today';
     final total = double.tryParse(_totalCtrl.text.trim());
-    final totalStr = total != null
-        ? 'PKR ${total.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}'
-        : '';
+    final totalStr = total != null ? 'PKR ${formatPkr(total)}' : '';
 
     // Build product summary from line items (up to 3)
     final items = widget.result.lineItems;
@@ -120,14 +119,7 @@ class _ExtractionReviewScreenState extends State<ExtractionReviewScreen> {
       productSummary = '\nItems: $lines${items.length > 3 ? ' ...' : ''}';
     }
 
-    final txLabel =
-        {
-          'sale': 'Sale',
-          'payment_received': 'Payment received',
-          'purchase': 'Purchase',
-          'expense': 'Expense',
-        }[_transactionType] ??
-        'Transaction';
+    final txLabel = txTypeLabelsLong[_transactionType] ?? 'Transaction';
 
     final buffer = StringBuffer();
     buffer.writeln('iStatis');
@@ -155,18 +147,6 @@ class _ExtractionReviewScreenState extends State<ExtractionReviewScreen> {
 
   Color _confBg(double conf) => AppConfidence.bg(conf);
 
-  String _docTypeLabel(String? dt) {
-    const labels = {
-      'calculation_note': 'Calculation Note',
-      'sales_slip': 'Sales Slip',
-      'price_list': 'Price List',
-      'distribution_record': 'Distribution Record',
-      'account_ledger': 'Account Ledger',
-      'unknown': 'Unknown',
-    };
-    return labels[dt] ?? (dt ?? 'Unknown');
-  }
-
   // ------------------------------------------------------------------
   // Build
   // ------------------------------------------------------------------
@@ -177,18 +157,13 @@ class _ExtractionReviewScreenState extends State<ExtractionReviewScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface1,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Review Extraction', style: AppText.navTitle),
-            Text(_docTypeLabel(r.documentType), style: AppText.navSubtitle),
-          ],
-        ),
+      appBar: ArcoTopBar(
+        title: 'Review Extraction',
+        subtitle: docTypeLabel(r.documentType),
+        showBrand: false,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: AppSpacing.s2),
             child: _ConfidenceBadge(confidence: r.overallConfidence),
           ),
         ],
@@ -435,9 +410,7 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: AppDecorations.card(),
-      padding: const EdgeInsets.all(AppSpacing.s4),
+    return ArcoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -694,41 +667,27 @@ class _WhatsAppSheetState extends State<_WhatsAppSheet> {
             // Buttons
             Row(
               children: [
-                IconButton(
+                ArcoIconButton(
+                  icon: Icons.copy_outlined,
                   onPressed: _copyToClipboard,
-                  icon: const Icon(Icons.copy_outlined),
-                  color: AppColors.text3,
-                  tooltip: 'Copy',
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: AppSpacing.s1),
                 Expanded(
-                  child: OutlinedButton(
+                  child: ArcoButton(
+                    label: 'Skip',
+                    variant: ArcoButtonVariant.secondary,
+                    expand: true,
                     onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      side: const BorderSide(color: AppColors.border),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('Skip'),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.s2),
                 Expanded(
                   flex: 2,
-                  child: ElevatedButton.icon(
+                  child: ArcoButton(
+                    label: 'Open WhatsApp',
+                    icon: Icons.send_outlined,
+                    expand: true,
                     onPressed: _launch,
-                    icon: const Icon(Icons.send_outlined, size: 16),
-                    label: const Text('Open WhatsApp'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.success,
-                      foregroundColor: AppColors.accentContrast,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
                   ),
                 ),
               ],

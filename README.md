@@ -6,8 +6,10 @@ Flutter client for the iStatis AI platform. Web-first UI for staff and customers
 
 - **Sign in / sign up** — Supabase Auth (email/password).
 - **AI assistant** — Chat tab calls `POST /chat` on the deployed API with a per-session `session_id`.
-- **Product catalogue** — Local product data and navigation (`catalogue_screen.dart`).
-- **Request a quote** — Form posts to `POST /quote`; authenticated users can load quote history and create orders via protected endpoints.
+- **Product catalogue** — Local product data and navigation.
+- **Request a quote** — Form posts to `POST /quote`; authenticated users can load quote history and create orders.
+- **Import** — Camera/gallery document upload with GPT-4o extraction and review flow.
+- **Ledger** — Transaction history and party balance tracking.
 
 ## Stack
 
