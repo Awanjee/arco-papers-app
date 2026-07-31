@@ -71,10 +71,6 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tier = product.pricingTiers.isNotEmpty
-        ? product.pricingTiers.first
-        : null;
-
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.s4),
       child: ArcoCard(
@@ -88,13 +84,13 @@ class _ProductCard extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: AppColors.accentSoft,
+                    color: AppColorsResolver.accentSoft(context),
                     borderRadius: AppRadius.rMd,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.inventory_2_outlined,
                     size: 19,
-                    color: AppColors.accent,
+                    color: AppColorsResolver.link(context),
                   ),
                 ),
                 const SizedBox(width: 13),
@@ -102,11 +98,13 @@ class _ProductCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(product.name, style: AppText.h3),
+                      Text(product.name, style: AppText.h3For(context)),
                       const SizedBox(height: 3),
                       Text(
                         product.description,
-                        style: AppText.small.copyWith(color: AppColors.text3),
+                        style: AppText.smallFor(
+                          context,
+                        ).copyWith(color: AppColorsResolver.text3(context)),
                       ),
                     ],
                   ),
@@ -125,10 +123,10 @@ class _ProductCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  tier != null
-                      ? 'FROM PKR ${tier.pricePerUnit % 1 == 0 ? tier.pricePerUnit.toInt() : tier.pricePerUnit} / UNIT'
-                      : 'MIN ${product.minOrder} UNITS',
-                  style: AppText.mono.copyWith(color: AppColors.accent),
+                  'MIN ${product.minOrder} UNITS',
+                  style: AppText.monoFor(
+                    context,
+                  ).copyWith(color: AppColorsResolver.link(context)),
                 ),
                 ArcoButton(
                   label: 'Add to quote',
@@ -149,7 +147,7 @@ class _ProductCard extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (_) => Scaffold(
-          backgroundColor: AppColors.canvas,
+          backgroundColor: AppColorsResolver.canvas(context),
           appBar: const ArcoTopBar(title: 'Request Quote', showBrand: false),
           body: QuoteScreen(preselectedProduct: product),
         ),

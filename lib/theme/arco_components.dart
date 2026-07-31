@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'app_theme.dart';
 
 // ---------------------------------------------------------------------------
-// Buttons — matches Design System v1: primary / secondary / ghost / danger
+// Buttons
 // ---------------------------------------------------------------------------
 
 enum ArcoButtonVariant { primary, secondary, ghost, danger }
@@ -38,9 +38,13 @@ class ArcoButton extends StatelessWidget {
       ArcoButtonSize.lg => 48.0,
     };
     final textStyle = switch (size) {
-      ArcoButtonSize.sm => AppText.small.copyWith(fontWeight: FontWeight.w600),
+      ArcoButtonSize.sm => AppText.smallFor(
+        context,
+      ).copyWith(fontWeight: FontWeight.w600),
       ArcoButtonSize.md => AppText.button,
-      ArcoButtonSize.lg => AppText.body.copyWith(fontWeight: FontWeight.w600),
+      ArcoButtonSize.lg => AppText.bodyFor(
+        context,
+      ).copyWith(fontWeight: FontWeight.w600),
     };
     final hPad = switch (size) {
       ArcoButtonSize.sm => AppSpacing.s3,
@@ -48,8 +52,7 @@ class ArcoButton extends StatelessWidget {
       ArcoButtonSize.lg => AppSpacing.s6,
     };
 
-    // AppText.button defaults to text1; set foreground explicitly per variant.
-    final fg = _foregroundColor(variant);
+    final fg = _foregroundColor(context, variant);
     final labelStyle = textStyle.copyWith(color: fg);
 
     final content = loading
@@ -58,7 +61,7 @@ class ArcoButton extends StatelessWidget {
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: _spinnerColor(variant),
+              color: _spinnerColor(context, variant),
             ),
           )
         : (icon != null
@@ -78,11 +81,12 @@ class ArcoButton extends StatelessWidget {
         button = ElevatedButton(
           onPressed: loading ? null : onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.accent,
-            foregroundColor: AppColors.accentContrast,
+            backgroundColor: AppColorsResolver.accent(context),
+            foregroundColor: AppColorsResolver.accentContrast(context),
             minimumSize: Size(expand ? double.infinity : 0, height),
             padding: EdgeInsets.symmetric(horizontal: hPad),
             textStyle: textStyle,
+            shape: const RoundedRectangleBorder(borderRadius: AppRadius.rLg),
           ),
           child: content,
         );
@@ -90,12 +94,13 @@ class ArcoButton extends StatelessWidget {
         button = OutlinedButton(
           onPressed: loading ? null : onPressed,
           style: OutlinedButton.styleFrom(
-            backgroundColor: AppColors.surface2,
-            foregroundColor: AppColors.text1,
+            backgroundColor: AppColorsResolver.surface2(context),
+            foregroundColor: AppColorsResolver.text1(context),
             minimumSize: Size(expand ? double.infinity : 0, height),
             padding: EdgeInsets.symmetric(horizontal: hPad),
-            side: const BorderSide(color: AppColors.borderStrong),
+            side: BorderSide(color: AppColorsResolver.border(context)),
             textStyle: textStyle,
+            shape: const RoundedRectangleBorder(borderRadius: AppRadius.rLg),
           ),
           child: content,
         );
@@ -103,7 +108,7 @@ class ArcoButton extends StatelessWidget {
         button = TextButton(
           onPressed: loading ? null : onPressed,
           style: TextButton.styleFrom(
-            foregroundColor: AppColors.text2,
+            foregroundColor: AppColorsResolver.text2(context),
             minimumSize: Size(expand ? double.infinity : 0, height),
             padding: EdgeInsets.symmetric(horizontal: hPad),
             textStyle: textStyle,
@@ -114,12 +119,15 @@ class ArcoButton extends StatelessWidget {
         button = OutlinedButton(
           onPressed: loading ? null : onPressed,
           style: OutlinedButton.styleFrom(
-            backgroundColor: AppColors.dangerSoft,
-            foregroundColor: AppColors.danger,
+            backgroundColor: AppColorsResolver.dangerSoft(context),
+            foregroundColor: AppColorsResolver.danger(context),
             minimumSize: Size(expand ? double.infinity : 0, height),
             padding: EdgeInsets.symmetric(horizontal: hPad),
-            side: BorderSide(color: AppColors.danger.withOpacity(0.35)),
+            side: BorderSide(
+              color: AppColorsResolver.danger(context).withOpacity(0.35),
+            ),
             textStyle: textStyle,
+            shape: const RoundedRectangleBorder(borderRadius: AppRadius.rLg),
           ),
           child: content,
         );
@@ -128,16 +136,17 @@ class ArcoButton extends StatelessWidget {
     return button;
   }
 
-  Color _foregroundColor(ArcoButtonVariant v) => switch (v) {
-    ArcoButtonVariant.primary => AppColors.accentContrast,
-    ArcoButtonVariant.secondary => AppColors.text1,
-    ArcoButtonVariant.ghost => AppColors.text2,
-    ArcoButtonVariant.danger => AppColors.danger,
-  };
+  Color _foregroundColor(BuildContext context, ArcoButtonVariant v) =>
+      switch (v) {
+        ArcoButtonVariant.primary => AppColorsResolver.accentContrast(context),
+        ArcoButtonVariant.secondary => AppColorsResolver.text1(context),
+        ArcoButtonVariant.ghost => AppColorsResolver.text2(context),
+        ArcoButtonVariant.danger => AppColorsResolver.danger(context),
+      };
 
-  Color _spinnerColor(ArcoButtonVariant v) => switch (v) {
-    ArcoButtonVariant.primary => AppColors.accentContrast,
-    _ => AppColors.accent,
+  Color _spinnerColor(BuildContext context, ArcoButtonVariant v) => switch (v) {
+    ArcoButtonVariant.primary => AppColorsResolver.accentContrast(context),
+    _ => AppColorsResolver.link(context),
   };
 }
 
@@ -155,8 +164,8 @@ class ArcoIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.accent,
+    final btn = Material(
+      color: AppColorsResolver.accent(context),
       borderRadius: AppRadius.rMd,
       child: InkWell(
         onTap: onPressed,
@@ -164,10 +173,16 @@ class ArcoIconButton extends StatelessWidget {
         child: SizedBox(
           width: 44,
           height: 44,
-          child: Icon(icon, size: 18, color: AppColors.accentContrast),
+          child: Icon(
+            icon,
+            size: 18,
+            color: AppColorsResolver.accentContrast(context),
+          ),
         ),
       ),
     );
+    if (tooltip == null) return btn;
+    return Tooltip(message: tooltip!, child: btn);
   }
 }
 
@@ -189,9 +204,15 @@ class ArcoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = selected ? AppColors.accentSoft2 : AppColors.surface2;
-    final border = selected ? AppColors.accentBorder : AppColors.border;
-    final color = selected ? AppColors.accent : AppColors.text1;
+    final bg = selected
+        ? AppColorsResolver.accent(context)
+        : AppColorsResolver.surface2(context);
+    final border = selected
+        ? AppColorsResolver.accent(context)
+        : AppColorsResolver.border(context);
+    final color = selected
+        ? AppColorsResolver.accentContrast(context)
+        : AppColorsResolver.text1(context);
 
     return Material(
       color: Colors.transparent,
@@ -210,7 +231,7 @@ class ArcoChip extends StatelessWidget {
           ),
           child: Text(
             label,
-            style: AppText.small.copyWith(
+            style: AppText.smallFor(context).copyWith(
               color: color,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
             ),
@@ -239,29 +260,29 @@ class ArcoBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bg, fg, dot) = switch (variant) {
       ArcoBadgeVariant.neutral => (
-        AppColors.surface2,
-        AppColors.text2,
-        AppColors.text3,
+        AppColorsResolver.surface2(context),
+        AppColorsResolver.text2(context),
+        AppColorsResolver.text3(context),
       ),
       ArcoBadgeVariant.accent => (
-        AppColors.accentSoft,
-        AppColors.accent,
-        AppColors.accent,
+        AppColorsResolver.accentSoft(context),
+        AppColorsResolver.link(context),
+        AppColorsResolver.link(context),
       ),
       ArcoBadgeVariant.success => (
-        AppColors.successSoft,
-        AppColors.success,
-        AppColors.success,
+        AppColorsResolver.successSoft(context),
+        AppColorsResolver.success(context),
+        AppColorsResolver.success(context),
       ),
       ArcoBadgeVariant.warning => (
-        AppColors.warningSoft,
-        AppColors.warning,
-        AppColors.warning,
+        AppColorsResolver.warningSoft(context),
+        AppColorsResolver.warning(context),
+        AppColorsResolver.warning(context),
       ),
       ArcoBadgeVariant.danger => (
-        AppColors.dangerSoft,
-        AppColors.danger,
-        AppColors.danger,
+        AppColorsResolver.dangerSoft(context),
+        AppColorsResolver.danger(context),
+        AppColorsResolver.danger(context),
       ),
     };
 
@@ -312,27 +333,27 @@ class ArcoAlert extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bg, fg, border, defaultIcon) = switch (variant) {
       ArcoAlertVariant.info => (
-        AppColors.accentSoft,
-        AppColors.text1,
-        AppColors.accentBorder,
+        AppColorsResolver.accentSoft(context),
+        AppColorsResolver.text1(context),
+        AppColorsResolver.accentBorder(context),
         Icons.info_outline,
       ),
       ArcoAlertVariant.success => (
-        AppColors.successSoft,
-        AppColors.text1,
-        AppColors.success.withOpacity(0.3),
+        AppColorsResolver.successSoft(context),
+        AppColorsResolver.success(context),
+        AppColorsResolver.success(context).withOpacity(0.3),
         Icons.check_circle_outline,
       ),
       ArcoAlertVariant.warning => (
-        AppColors.warningSoft,
-        AppColors.text1,
-        AppColors.warning.withOpacity(0.3),
+        AppColorsResolver.warningSoft(context),
+        AppColorsResolver.warning(context),
+        AppColorsResolver.warning(context).withOpacity(0.3),
         Icons.warning_amber_rounded,
       ),
       ArcoAlertVariant.danger => (
-        AppColors.dangerSoft,
-        AppColors.text1,
-        AppColors.danger.withOpacity(0.3),
+        AppColorsResolver.dangerSoft(context),
+        AppColorsResolver.danger(context),
+        AppColorsResolver.danger(context).withOpacity(0.3),
         Icons.error_outline,
       ),
     };
@@ -353,7 +374,10 @@ class ArcoAlert extends StatelessWidget {
           Icon(icon ?? defaultIcon, size: 18, color: fg),
           const SizedBox(width: AppSpacing.s3),
           Expanded(
-            child: Text(message, style: AppText.small.copyWith(color: fg)),
+            child: Text(
+              message,
+              style: AppText.smallFor(context).copyWith(color: fg),
+            ),
           ),
         ],
       ),
@@ -375,7 +399,7 @@ class ArcoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final card = Container(
-      decoration: AppDecorations.card(),
+      decoration: AppDecorations.card(context),
       padding: padding ?? const EdgeInsets.all(AppSpacing.s4),
       child: child,
     );
@@ -396,11 +420,7 @@ class ArcoPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface1,
-        borderRadius: AppRadius.rLg,
-        border: Border.all(color: AppColors.borderSubtle),
-      ),
+      decoration: AppDecorations.panel(context),
       padding: padding ?? const EdgeInsets.all(AppSpacing.s6),
       child: child,
     );
@@ -418,7 +438,7 @@ class ArcoDivider extends StatelessWidget {
     return Divider(
       height: 1,
       thickness: 1,
-      color: AppColors.borderSubtle,
+      color: AppColorsResolver.borderSubtle(context),
       indent: indent,
       endIndent: endIndent,
     );
@@ -443,13 +463,18 @@ class ArcoSectionHead extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (eyebrow != null) ...[
-          Text(eyebrow!, style: AppText.eyebrow),
+          Text(eyebrow!, style: AppText.eyebrowFor(context)),
           const SizedBox(height: AppSpacing.s2),
         ],
-        Text(title, style: AppText.h1),
+        Text(title, style: AppText.h1For(context)),
         if (subtitle != null) ...[
           const SizedBox(height: AppSpacing.s2),
-          Text(subtitle!, style: AppText.body.copyWith(color: AppColors.text2)),
+          Text(
+            subtitle!,
+            style: AppText.bodyFor(
+              context,
+            ).copyWith(color: AppColorsResolver.text2(context)),
+          ),
         ],
       ],
     );
@@ -457,7 +482,7 @@ class ArcoSectionHead extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Top bar & segmented navigation (Design System v1)
+// Top bar & segmented navigation
 // ---------------------------------------------------------------------------
 
 class ArcoBrandMark extends StatelessWidget {
@@ -471,7 +496,7 @@ class ArcoBrandMark extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.accent,
+        color: AppColorsResolver.accent(context),
         borderRadius: AppRadius.rMd,
       ),
       alignment: Alignment.center,
@@ -479,7 +504,7 @@ class ArcoBrandMark extends StatelessWidget {
         'i',
         style: AppText.body.copyWith(
           fontWeight: FontWeight.w800,
-          color: AppColors.accentContrast,
+          color: AppColorsResolver.accentContrast(context),
           fontSize: size * 0.5,
         ),
       ),
@@ -507,10 +532,12 @@ class ArcoTopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surface1.withOpacity(0.92),
+      color: AppColorsResolver.canvas(context).withOpacity(0.92),
       child: Container(
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: AppColorsResolver.borderSubtle(context)),
+          ),
         ),
         child: SafeArea(
           bottom: false,
@@ -530,9 +557,9 @@ class ArcoTopBar extends StatelessWidget implements PreferredSizeWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(title, style: AppText.navTitle),
+                      Text(title, style: AppText.navTitleFor(context)),
                       if (subtitle != null)
-                        Text(subtitle!, style: AppText.navSubtitle),
+                        Text(subtitle!, style: AppText.navSubtitleFor(context)),
                     ],
                   ),
                 ),
@@ -569,9 +596,9 @@ class ArcoSegTabs extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.surface2,
+        color: AppColorsResolver.surface2(context),
         borderRadius: AppRadius.rMd,
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: AppColorsResolver.borderSubtle(context)),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -592,15 +619,21 @@ class ArcoSegTabs extends StatelessWidget {
                       vertical: AppSpacing.s2,
                     ),
                     decoration: BoxDecoration(
-                      color: active ? AppColors.surface1 : Colors.transparent,
+                      color: active
+                          ? AppColorsResolver.surface1(context)
+                          : Colors.transparent,
                       borderRadius: AppRadius.rSm,
-                      boxShadow: active ? AppShadows.level1 : null,
+                      boxShadow: active && !AppColorsResolver.isLight(context)
+                          ? AppShadows.level1
+                          : null,
                     ),
                     child: Text(
                       labels[i],
-                      style: AppText.small.copyWith(
+                      style: AppText.smallFor(context).copyWith(
                         fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                        color: active ? AppColors.text1 : AppColors.text3,
+                        color: active
+                            ? AppColorsResolver.link(context)
+                            : AppColorsResolver.text3(context),
                       ),
                     ),
                   ),
@@ -625,10 +658,10 @@ class ArcoFieldLabel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppText.label),
+        Text(label, style: AppText.labelFor(context)),
         if (hint != null) ...[
           const SizedBox(height: AppSpacing.s1),
-          Text(hint!, style: AppText.caption),
+          Text(hint!, style: AppText.captionFor(context)),
         ],
       ],
     );

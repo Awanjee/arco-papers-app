@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -14,10 +13,7 @@ import '../utils/transaction_labels.dart';
 class ExtractionReviewScreen extends StatefulWidget {
   final ExtractionResult result;
 
-  const ExtractionReviewScreen({
-    super.key,
-    required this.result,
-  });
+  const ExtractionReviewScreen({super.key, required this.result});
 
   @override
   State<ExtractionReviewScreen> createState() => _ExtractionReviewScreenState();
@@ -143,9 +139,11 @@ class _ExtractionReviewScreenState extends State<ExtractionReviewScreen> {
   // Confidence colour helpers
   // ------------------------------------------------------------------
 
-  Color _confColor(double conf) => AppConfidence.fg(conf);
+  Color _confColor(BuildContext context, double conf) =>
+      AppConfidence.fg(context, conf);
 
-  Color _confBg(double conf) => AppConfidence.bg(conf);
+  Color _confBg(BuildContext context, double conf) =>
+      AppConfidence.bg(context, conf);
 
   // ------------------------------------------------------------------
   // Build
@@ -156,7 +154,7 @@ class _ExtractionReviewScreenState extends State<ExtractionReviewScreen> {
     final r = widget.result;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: AppColorsResolver.canvas(context),
       appBar: ArcoTopBar(
         title: 'Review Extraction',
         subtitle: docTypeLabel(r.documentType),
@@ -240,8 +238,8 @@ class _ExtractionReviewScreenState extends State<ExtractionReviewScreen> {
                   .map(
                     (item) => _LineItemTile(
                       item: item,
-                      confColor: _confColor(item.confidence),
-                      confBg: _confBg(item.confidence),
+                      confColor: _confColor(context, item.confidence),
+                      confBg: _confBg(context, item.confidence),
                     ),
                   )
                   .toList(),
@@ -252,8 +250,8 @@ class _ExtractionReviewScreenState extends State<ExtractionReviewScreen> {
         if (r.unreadableSections != null && r.unreadableSections!.isNotEmpty)
           _InfoTile(
             icon: Icons.visibility_off_outlined,
-            color: AppColors.text2,
-            bg: AppColors.surface2,
+            color: AppColorsResolver.text2(context),
+            bg: AppColorsResolver.surface2(context),
             text: 'Could not read: ${r.unreadableSections}',
           ),
 
@@ -266,11 +264,10 @@ class _ExtractionReviewScreenState extends State<ExtractionReviewScreen> {
               child: Text(
                 r.rawTextUrdu!,
                 textDirection: TextDirection.rtl,
-                style: GoogleFonts.notoNastaliqUrdu(
+                style: AppText.urdu(
+                  color: AppColorsResolver.text1(context),
                   fontSize: 14,
-                  color: AppColors.text1,
-                  height: 1.8,
-                ),
+                ).copyWith(height: 1.8),
               ),
             ),
           ),
@@ -349,16 +346,17 @@ class _TxTypeSelector extends StatelessWidget {
 
   const _TxTypeSelector({required this.value, required this.onChanged});
 
-  static final _options = [
-    ('sale', 'Sale', Icons.arrow_upward, AppColors.accent),
+  static List<(String, String, IconData, Color Function(BuildContext))>
+  _options(BuildContext context) => [
+    ('sale', 'Sale', Icons.arrow_upward, AppColorsResolver.link),
     (
       'payment_received',
       'Payment In',
       Icons.payments_outlined,
-      AppColors.accent,
+      AppColorsResolver.link,
     ),
-    ('purchase', 'Purchase', Icons.arrow_downward, AppColors.accent),
-    ('expense', 'Expense', Icons.receipt_outlined, AppColors.warning),
+    ('purchase', 'Purchase', Icons.arrow_downward, AppColorsResolver.link),
+    ('expense', 'Expense', Icons.receipt_outlined, AppColorsResolver.warning),
   ];
 
   @override
@@ -366,8 +364,8 @@ class _TxTypeSelector extends StatelessWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: _options.map((opt) {
-        final (key, label, icon, color) = opt;
+      children: _options(context).map((opt) {
+        final (key, label, icon, _) = opt;
         final selected = value == key;
         return ArcoChip(
           label: label,
@@ -386,7 +384,7 @@ class _ConfidenceBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pct = (confidence * 100).round();
-    final bg = AppConfidence.fg(confidence);
+    final bg = AppConfidence.fg(context, confidence);
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -621,12 +619,12 @@ class _WhatsAppSheetState extends State<_WhatsAppSheet> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.successSoft,
+                    color: AppColorsResolver.successSoft(context),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.chat_outlined,
-                    color: AppColors.success,
+                    color: AppColorsResolver.success(context),
                     size: 20,
                   ),
                 ),
@@ -648,9 +646,11 @@ class _WhatsAppSheetState extends State<_WhatsAppSheet> {
             // Editable message
             Container(
               decoration: BoxDecoration(
-                color: AppColors.surface1,
+                color: AppColorsResolver.surface1(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.success.withOpacity(0.3)),
+                border: Border.all(
+                  color: AppColorsResolver.success(context).withOpacity(0.3),
+                ),
               ),
               child: TextField(
                 controller: _msgCtrl,

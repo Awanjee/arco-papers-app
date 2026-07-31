@@ -12,18 +12,27 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userBg = AppColorsResolver.feature(context);
+    final userFg = AppColorsResolver.featureInk(context);
+    final botBg = AppColorsResolver.surface1(context);
+    final botFg = AppColorsResolver.text1(context);
+
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(
-            vertical: AppSpacing.s1, horizontal: AppSpacing.s3),
+          vertical: AppSpacing.s1,
+          horizontal: AppSpacing.s3,
+        ),
         padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.s4, vertical: AppSpacing.s3),
+          horizontal: AppSpacing.s4,
+          vertical: AppSpacing.s3,
+        ),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: isUser ? AppColors.accent : AppColors.surface2,
+          color: isUser ? userBg : botBg,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(AppRadius.xl),
             topRight: const Radius.circular(AppRadius.xl),
@@ -32,15 +41,13 @@ class ChatBubble extends StatelessWidget {
           ),
           border: isUser
               ? null
-              : Border.all(color: AppColors.borderSubtle),
+              : Border.all(color: AppColorsResolver.border(context)),
         ),
         child: Text(
           message.content,
-          style: AppText.body.copyWith(
-            fontSize: 14,
-            height: 1.5,
-            color: isUser ? AppColors.accentContrast : AppColors.text1,
-          ),
+          style: AppText.bodyFor(
+            context,
+          ).copyWith(fontSize: 14, height: 1.5, color: isUser ? userFg : botFg),
         ),
       ),
     );

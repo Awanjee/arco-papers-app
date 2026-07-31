@@ -33,9 +33,11 @@ class _ChatInputState extends State<ChatInput> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s4),
-      decoration: const BoxDecoration(
-        color: AppColors.surface1,
-        border: Border(top: BorderSide(color: AppColors.borderSubtle)),
+      decoration: BoxDecoration(
+        color: AppColorsResolver.surface1(context),
+        border: Border(
+          top: BorderSide(color: AppColorsResolver.borderSubtle(context)),
+        ),
       ),
       child: Row(
         children: [
@@ -43,7 +45,7 @@ class _ChatInputState extends State<ChatInput> {
             child: TextField(
               controller: _controller,
               onSubmitted: (_) => _send(),
-              style: AppText.body.copyWith(fontSize: 14),
+              style: AppText.bodyFor(context).copyWith(fontSize: 14),
               decoration: const InputDecoration(
                 hintText: 'Ask about products or pricing...',
               ),
@@ -51,14 +53,17 @@ class _ChatInputState extends State<ChatInput> {
           ),
           const SizedBox(width: AppSpacing.s2),
           widget.isLoading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 44,
                   height: 44,
                   child: Center(
                     child: SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColorsResolver.link(context),
+                      ),
                     ),
                   ),
                 )

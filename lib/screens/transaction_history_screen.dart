@@ -58,10 +58,7 @@ class _TransactionsTab extends StatelessWidget {
   final Future<List<TransactionSummary>> future;
   final VoidCallback onRefresh;
 
-  const _TransactionsTab({
-    required this.future,
-    required this.onRefresh,
-  });
+  const _TransactionsTab({required this.future, required this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +68,11 @@ class _TransactionsTab extends StatelessWidget {
         future: future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: AppColorsResolver.link(context),
+              ),
+            );
           }
           if (snapshot.hasError) {
             return _buildError(context);
@@ -84,8 +85,7 @@ class _TransactionsTab extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.s4),
             itemCount: transactions.length,
             separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.s3),
-            itemBuilder: (context, i) =>
-                _TransactionCard(tx: transactions[i]),
+            itemBuilder: (context, i) => _TransactionCard(tx: transactions[i]),
           );
         },
       ),
@@ -98,24 +98,26 @@ class _TransactionsTab extends StatelessWidget {
         SizedBox(height: MediaQuery.of(context).size.height * 0.3),
         Column(
           children: [
-            const Icon(
+            Icon(
               Icons.receipt_long_outlined,
               size: 64,
-              color: AppColors.text3,
+              color: AppColorsResolver.text3(context),
             ),
             const SizedBox(height: AppSpacing.s4),
             Text(
               'No transactions yet',
               style: AppText.bodyLg.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.text3,
+                color: AppColorsResolver.text3(context),
               ),
             ),
             const SizedBox(height: AppSpacing.s2),
             Text(
               'Import and confirm a document\nto see it here.',
               textAlign: TextAlign.center,
-              style: AppText.small.copyWith(color: AppColors.text3),
+              style: AppText.smallFor(
+                context,
+              ).copyWith(color: AppColorsResolver.text3(context)),
             ),
           ],
         ),
@@ -130,11 +132,17 @@ class _TransactionsTab extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.danger),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: AppColorsResolver.danger(context),
+            ),
             const SizedBox(height: AppSpacing.s3),
             Text(
               'Could not load transactions',
-              style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+              style: AppText.bodyFor(
+                context,
+              ).copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: AppSpacing.s2),
             ArcoButton(
@@ -159,7 +167,7 @@ class _TransactionCard extends StatelessWidget {
     final party = tx.partyNameRoman ?? tx.partyNameUrdu ?? 'Unknown party';
     final date = formatTxDate(tx.transactionDate);
     final label = docTypeLabel(tx.documentType);
-    final chipColor = docTypeColor(tx.documentType);
+    final chipColor = docTypeColor(context, tx.documentType);
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -172,7 +180,7 @@ class _TransactionCard extends StatelessWidget {
         ),
       ),
       child: Container(
-        decoration: AppDecorations.card(),
+        decoration: AppDecorations.card(context),
         padding: const EdgeInsets.all(AppSpacing.s4),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,18 +200,20 @@ class _TransactionCard extends StatelessWidget {
                 children: [
                   Text(
                     party,
-                    style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+                    style: AppText.bodyFor(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: AppSpacing.s1),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.calendar_today_outlined,
                         size: 12,
-                        color: AppColors.text3,
+                        color: AppColorsResolver.text3(context),
                       ),
                       const SizedBox(width: AppSpacing.s1),
-                      Text(date, style: AppText.caption),
+                      Text(date, style: AppText.captionFor(context)),
                       const SizedBox(width: AppSpacing.s3),
                       ArcoTypeChip(label: label, color: chipColor),
                     ],
@@ -225,9 +235,9 @@ class _TransactionCard extends StatelessWidget {
             if (tx.totalAmount != null)
               Text(
                 'PKR ${formatPkr(tx.totalAmount!)}',
-                style: AppText.body.copyWith(
+                style: AppText.bodyFor(context).copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.accent,
+                  color: AppColorsResolver.link(context),
                 ),
               ),
           ],

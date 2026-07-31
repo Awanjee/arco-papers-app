@@ -84,8 +84,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
       notes: _notesController.text.trim(),
     );
 
-    final response =
-        await context.read<ApiService>().requestQuote(request);
+    final response = await context.read<ApiService>().requestQuote(request);
 
     setState(() {
       _isLoading = false;
@@ -228,7 +227,9 @@ class _QuoteScreenState extends State<QuoteScreen> {
               ArcoPanel(
                 child: Text(
                   _quoteSummary,
-                  style: AppText.mono.copyWith(color: AppColors.accent),
+                  style: AppText.monoFor(
+                    context,
+                  ).copyWith(color: AppColorsResolver.link(context)),
                 ),
               ),
             ],

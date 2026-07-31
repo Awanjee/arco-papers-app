@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../models/transaction.dart';
@@ -31,15 +30,15 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _future = context
-        .read<ExtractionService>()
-        .getTransactionDetail(widget.transactionId);
+    _future = context.read<ExtractionService>().getTransactionDetail(
+      widget.transactionId,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: AppColorsResolver.canvas(context),
       appBar: ArcoTopBar(
         title: widget.initialPartyName ?? 'Transaction',
         showBrand: false,
@@ -48,8 +47,10 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.accent),
+            return Center(
+              child: CircularProgressIndicator(
+                color: AppColorsResolver.link(context),
+              ),
             );
           }
           if (snapshot.hasError) {
@@ -62,7 +63,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                     Icon(
                       Icons.error_outline,
                       size: 48,
-                      color: AppColors.danger,
+                      color: AppColorsResolver.danger(context),
                     ),
                     const SizedBox(height: AppSpacing.s3),
                     Text(
@@ -91,7 +92,7 @@ class _TransactionDetailBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final txType = tx.transactionType ?? 'sale';
-    final txColor = txTypeColor(txType, detailScreen: true);
+    final txColor = txTypeColor(context, txType, detailScreen: true);
     final txLabel = txTypeLabel(txType);
     final docLabel = docTypeLabel(tx.documentType);
     final party = tx.partyNameRoman ?? tx.partyNameUrdu ?? 'Unknown party';
@@ -124,9 +125,8 @@ class _TransactionDetailBody extends StatelessWidget {
                   textDirection: TextDirection.rtl,
                   child: Text(
                     tx.partyNameUrdu!,
-                    style: GoogleFonts.notoNastaliqUrdu(
-                      fontSize: 16,
-                      color: AppColors.text2,
+                    style: AppText.urdu(
+                      color: AppColorsResolver.text2(context),
                     ),
                   ),
                 ),
@@ -171,7 +171,9 @@ class _TransactionDetailBody extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.s6),
                 child: Text(
                   'No line items recorded',
-                  style: AppText.small.copyWith(color: AppColors.text3),
+                  style: AppText.smallFor(
+                    context,
+                  ).copyWith(color: AppColorsResolver.text3(context)),
                 ),
               ),
             ),
@@ -260,7 +262,9 @@ class _LineItemRow extends StatelessWidget {
     final qtyStr = item.quantity?.toStringAsFixed(
       item.quantity! == item.quantity!.truncateToDouble() ? 0 : 1,
     );
-    final priceStr = item.unitPrice != null ? formatAmount(item.unitPrice!) : null;
+    final priceStr = item.unitPrice != null
+        ? formatAmount(item.unitPrice!)
+        : null;
     final qtyPrice = (qtyStr != null && priceStr != null)
         ? '$qtyStr × $priceStr'
         : null;
@@ -285,11 +289,13 @@ class _LineItemRow extends StatelessWidget {
                       children: [
                         if (lowConfidence)
                           Padding(
-                            padding: const EdgeInsets.only(right: AppSpacing.s1),
+                            padding: const EdgeInsets.only(
+                              right: AppSpacing.s1,
+                            ),
                             child: Icon(
                               Icons.warning_amber_rounded,
                               size: 13,
-                              color: AppColors.warning,
+                              color: AppColorsResolver.warning(context),
                             ),
                           ),
                         Expanded(
@@ -320,7 +326,7 @@ class _LineItemRow extends StatelessWidget {
                         child: Text(
                           item.notes!,
                           style: AppText.caption.copyWith(
-                            color: AppColors.warning,
+                            color: AppColorsResolver.warning(context),
                             fontStyle: FontStyle.italic,
                           ),
                         ),
@@ -351,10 +357,7 @@ class _LineItemRow extends StatelessWidget {
           ),
         ),
         if (!isLast)
-          const ArcoDivider(
-            indent: AppSpacing.s4,
-            endIndent: AppSpacing.s4,
-          ),
+          const ArcoDivider(indent: AppSpacing.s4, endIndent: AppSpacing.s4),
       ],
     );
   }
@@ -375,13 +378,13 @@ class _MetaRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: AppColors.text3),
+        Icon(icon, size: 14, color: AppColorsResolver.text3(context)),
         const SizedBox(width: AppSpacing.s2),
         Expanded(
           child: Text(
             label,
             style: AppText.small.copyWith(
-              color: AppColors.text3,
+              color: AppColorsResolver.text3(context),
               fontStyle: italic ? FontStyle.italic : FontStyle.normal,
             ),
           ),

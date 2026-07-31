@@ -2,6 +2,38 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
+String docTypeLabel(String? dt) => docTypeLabels[dt] ?? dt ?? 'Unknown';
+
+Color docTypeColor(BuildContext context, String? dt) {
+  final key = dt ?? 'unknown';
+  if (key == 'account_ledger') return AppColorsResolver.warning(context);
+  if (key == 'calculation_note') return AppColorsResolver.success(context);
+  if (key == 'unknown') return AppColorsResolver.text3(context);
+  return AppColorsResolver.link(context);
+}
+
+String txTypeLabel(String? txType) =>
+    txTypeLabels[txType ?? 'sale'] ?? txType ?? 'Sale';
+
+Color txTypeColor(
+  BuildContext context,
+  String? txType, {
+  bool detailScreen = false,
+}) {
+  final t = txType ?? 'sale';
+  if (detailScreen) {
+    if (t == 'expense') return AppColorsResolver.warning(context);
+    return AppColorsResolver.link(context);
+  }
+  return switch (t) {
+    'sale' => AppColorsResolver.link(context),
+    'payment_received' => AppColorsResolver.success(context),
+    'purchase' => AppColorsResolver.warning(context),
+    'expense' => AppColorsResolver.warning(context),
+    _ => AppColorsResolver.text3(context),
+  };
+}
+
 const docTypeLabels = {
   'sales_slip': 'Sales Slip',
   'price_list': 'Price List',
@@ -11,27 +43,11 @@ const docTypeLabels = {
   'unknown': 'Unknown',
 };
 
-const docTypeColors = {
-  'sales_slip': AppColors.accent,
-  'price_list': AppColors.accent,
-  'distribution_record': AppColors.accent,
-  'account_ledger': AppColors.warning,
-  'calculation_note': AppColors.success,
-  'unknown': AppColors.text3,
-};
-
 const txTypeLabels = {
   'sale': 'Sale',
   'payment_received': 'Payment',
   'purchase': 'Purchase',
   'expense': 'Expense',
-};
-
-const txTypeColors = {
-  'sale': AppColors.accent,
-  'payment_received': AppColors.success,
-  'purchase': AppColors.warning,
-  'expense': AppColors.warning,
 };
 
 const txTypeLabelsLong = {
@@ -40,28 +56,6 @@ const txTypeLabelsLong = {
   'purchase': 'Purchase',
   'expense': 'Expense',
 };
-
-String docTypeLabel(String? dt) =>
-    docTypeLabels[dt] ?? dt ?? 'Unknown';
-
-Color docTypeColor(String? dt) =>
-    docTypeColors[dt] ?? AppColors.text3;
-
-String txTypeLabel(String? txType) =>
-    txTypeLabels[txType ?? 'sale'] ?? txType ?? 'Sale';
-
-Color txTypeColor(String? txType, {bool detailScreen = false}) {
-  if (detailScreen) {
-    const detailColors = {
-      'sale': AppColors.accent,
-      'payment_received': AppColors.accent,
-      'purchase': AppColors.accent,
-      'expense': AppColors.warning,
-    };
-    return detailColors[txType ?? 'sale'] ?? AppColors.text3;
-  }
-  return txTypeColors[txType ?? 'sale'] ?? AppColors.text3;
-}
 
 const _sizeExpansions = {
   'a/4': 'A4',

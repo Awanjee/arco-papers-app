@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/arco_components.dart';
 import '../widgets/chat_bubble.dart';
@@ -57,20 +58,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: AppColorsResolver.canvas(context),
       appBar: ArcoTopBar(
         title: _titles[_currentIndex],
         subtitle: _subtitles[_currentIndex],
         actions: [
+          IconButton(
+            icon: Icon(
+              themeProvider.isDark
+                  ? Icons.light_mode_outlined
+                  : Icons.dark_mode_outlined,
+              color: AppColorsResolver.text2(context),
+            ),
+            onPressed: themeProvider.toggle,
+            tooltip: themeProvider.isDark ? 'Light theme' : 'Dark theme',
+          ),
           if (_currentIndex == 0)
             IconButton(
-              icon: const Icon(Icons.refresh_outlined, color: AppColors.text2),
+              icon: Icon(
+                Icons.refresh_outlined,
+                color: AppColorsResolver.text2(context),
+              ),
               onPressed: () => context.read<ChatProvider>().clearMessages(),
               tooltip: 'Clear chat',
             ),
           IconButton(
-            icon: const Icon(Icons.logout, color: AppColors.text2),
+            icon: Icon(Icons.logout, color: AppColorsResolver.text2(context)),
             onPressed: () => context.read<AuthProvider>().signOut(),
             tooltip: 'Log out',
           ),
@@ -121,7 +137,7 @@ class _ChatTabState extends State<_ChatTab> {
           children: [
             Expanded(
               child: provider.messages.isEmpty
-                  ? _buildWelcome()
+                  ? _buildWelcome(context)
                   : ListView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(
@@ -149,7 +165,7 @@ class _ChatTabState extends State<_ChatTab> {
     );
   }
 
-  Widget _buildWelcome() {
+  Widget _buildWelcome(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s8),
@@ -160,24 +176,28 @@ class _ChatTabState extends State<_ChatTab> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.accentSoft,
+                color: AppColorsResolver.feature(context),
                 borderRadius: AppRadius.rMd,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.inventory_2_outlined,
                 size: 28,
-                color: AppColors.accent,
+                color: AppColorsResolver.featureInk(context),
               ),
             ),
             const SizedBox(height: AppSpacing.s4),
             Text.rich(
               TextSpan(
                 text: 'i',
-                style: AppText.h2,
+                style: AppText.h2.copyWith(
+                  color: AppColorsResolver.text1(context),
+                ),
                 children: [
                   TextSpan(
                     text: 'Statis',
-                    style: AppText.h2.copyWith(color: AppColors.accent),
+                    style: AppText.h2.copyWith(
+                      color: AppColorsResolver.link(context),
+                    ),
                   ),
                 ],
               ),
@@ -187,7 +207,9 @@ class _ChatTabState extends State<_ChatTab> {
             Text(
               'Ask about envelopes, paper, file carriers, bulk pricing, or place an order.',
               textAlign: TextAlign.center,
-              style: AppText.body.copyWith(color: AppColors.text2),
+              style: AppText.bodyFor(
+                context,
+              ).copyWith(color: AppColorsResolver.text2(context)),
             ),
           ],
         ),

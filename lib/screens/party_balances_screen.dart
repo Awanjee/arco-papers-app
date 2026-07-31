@@ -27,8 +27,9 @@ class _PartyBalancesScreenState extends State<PartyBalancesScreen> {
     _future = context.read<ExtractionService>().getPartyBalances();
   }
 
-  void _refresh() =>
-      setState(() => _future = context.read<ExtractionService>().getPartyBalances());
+  void _refresh() => setState(
+    () => _future = context.read<ExtractionService>().getPartyBalances(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -94,20 +95,26 @@ class _PartyBalancesScreenState extends State<PartyBalancesScreen> {
         SizedBox(height: MediaQuery.of(context).size.height * 0.3),
         Column(
           children: [
-            const Icon(Icons.people_outline, size: 64, color: AppColors.text3),
+            Icon(
+              Icons.people_outline,
+              size: 64,
+              color: AppColorsResolver.text3(context),
+            ),
             const SizedBox(height: AppSpacing.s4),
             Text(
               'No parties yet',
               style: AppText.bodyLg.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.text3,
+                color: AppColorsResolver.text3(context),
               ),
             ),
             const SizedBox(height: AppSpacing.s2),
             Text(
               'Confirm a transaction to see\nparty balances here.',
               textAlign: TextAlign.center,
-              style: AppText.small.copyWith(color: AppColors.text3),
+              style: AppText.smallFor(
+                context,
+              ).copyWith(color: AppColorsResolver.text3(context)),
             ),
           ],
         ),
@@ -120,7 +127,11 @@ class _PartyBalancesScreenState extends State<PartyBalancesScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline, size: 48, color: AppColors.danger),
+          Icon(
+            Icons.error_outline,
+            size: 48,
+            color: AppColorsResolver.danger(context),
+          ),
           const SizedBox(height: AppSpacing.s3),
           Text(
             'Could not load balances',
@@ -152,7 +163,7 @@ class _SummaryRow extends StatelessWidget {
           child: _SummaryCard(
             label: 'Owed to iStatis',
             amount: totalOwed,
-            color: AppColors.accent,
+            color: AppColorsResolver.link(context),
             icon: Icons.arrow_circle_up_outlined,
           ),
         ),
@@ -161,7 +172,7 @@ class _SummaryRow extends StatelessWidget {
           child: _SummaryCard(
             label: 'iStatis Owes',
             amount: totalOwing,
-            color: AppColors.warning,
+            color: AppColorsResolver.warning(context),
             icon: Icons.arrow_circle_down_outlined,
           ),
         ),
@@ -187,7 +198,7 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s4),
-      decoration: AppDecorations.semanticTint(color),
+      decoration: AppDecorations.semanticTint(context, color),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -223,13 +234,15 @@ class _PartyCard extends StatelessWidget {
     final name = party.nameRoman ?? party.nameUrdu ?? 'Unknown';
     final balance = party.balance;
     final isOwed = balance >= 0;
-    final balanceColor = isOwed ? AppColors.accent : AppColors.warning;
+    final balanceColor = isOwed
+        ? AppColorsResolver.link(context)
+        : AppColorsResolver.warning(context);
     final lastDate = formatTxDateOptional(party.lastTransactionDate);
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        decoration: AppDecorations.card(),
+        decoration: AppDecorations.card(context),
         padding: const EdgeInsets.all(AppSpacing.s4),
         child: Row(
           children: [
@@ -286,7 +299,11 @@ class _PartyCard extends StatelessWidget {
               ],
             ),
             const SizedBox(width: AppSpacing.s2),
-            const Icon(Icons.chevron_right, color: AppColors.text3, size: 20),
+            Icon(
+              Icons.chevron_right,
+              color: AppColorsResolver.text3(context),
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -311,9 +328,9 @@ class _PartyTransactionHistoryScreenState
   @override
   void initState() {
     super.initState();
-    _future = context
-        .read<ExtractionService>()
-        .getTransactions(partyId: widget.party.partyId);
+    _future = context.read<ExtractionService>().getTransactions(
+      partyId: widget.party.partyId,
+    );
   }
 
   @override
@@ -321,10 +338,12 @@ class _PartyTransactionHistoryScreenState
     final name = widget.party.nameRoman ?? widget.party.nameUrdu ?? 'Unknown';
     final balance = widget.party.balance;
     final isOwed = balance >= 0;
-    final balanceColor = isOwed ? AppColors.accent : AppColors.warning;
+    final balanceColor = isOwed
+        ? AppColorsResolver.link(context)
+        : AppColorsResolver.warning(context);
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: AppColorsResolver.canvas(context),
       appBar: ArcoTopBar(
         title: name,
         subtitle:
@@ -343,7 +362,9 @@ class _PartyTransactionHistoryScreenState
             return Center(
               child: Text(
                 'Could not load.',
-                style: AppText.small.copyWith(color: AppColors.text3),
+                style: AppText.smallFor(
+                  context,
+                ).copyWith(color: AppColorsResolver.text3(context)),
               ),
             );
           }
@@ -352,7 +373,9 @@ class _PartyTransactionHistoryScreenState
             return Center(
               child: Text(
                 'No transactions found.',
-                style: AppText.small.copyWith(color: AppColors.text3),
+                style: AppText.smallFor(
+                  context,
+                ).copyWith(color: AppColorsResolver.text3(context)),
               ),
             );
           }
@@ -376,7 +399,7 @@ class _PartyTxRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final txType = tx.transactionType ?? 'sale';
-    final color = txTypeColor(txType);
+    final color = txTypeColor(context, txType);
     final label = txTypeLabel(txType);
     final isCredit = txType == 'payment_received';
 
@@ -391,7 +414,7 @@ class _PartyTxRow extends StatelessWidget {
         ),
       ),
       child: Container(
-        decoration: AppDecorations.card(),
+        decoration: AppDecorations.card(context),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.s4,
           vertical: AppSpacing.s4,
@@ -440,7 +463,9 @@ class _PartyTxRow extends StatelessWidget {
                 '${isCredit ? "-" : "+"}PKR ${formatPkr(tx.totalAmount!)}',
                 style: AppText.body.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: isCredit ? AppColors.success : AppColors.accent,
+                  color: isCredit
+                      ? AppColorsResolver.success(context)
+                      : AppColorsResolver.link(context),
                 ),
               ),
           ],

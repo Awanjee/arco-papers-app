@@ -21,7 +21,7 @@ class AuthShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: AppColorsResolver.canvas(context),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -62,9 +62,12 @@ class _BrandHeader extends StatelessWidget {
       children: [
         const ArcoBrandMark(size: 48),
         const SizedBox(height: AppSpacing.s3),
-        Text('iStatis', style: AppText.h3.copyWith(color: AppColors.accent)),
+        Text(
+          'iStatis',
+          style: AppText.h3.copyWith(color: AppColorsResolver.link(context)),
+        ),
         const SizedBox(height: AppSpacing.s1),
-        Text('v1.0 · dark', style: AppText.eyebrow),
+        Text('Paper trade desk', style: AppText.eyebrowFor(context)),
       ],
     );
   }

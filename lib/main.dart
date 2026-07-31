@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/services_provider.dart';
+import 'providers/theme_provider.dart';
 import 'theme/app_theme.dart';
 import 'widgets/auth_gate.dart';
 
@@ -19,9 +20,8 @@ class IstatisApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider()..init(),
-        ),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
         ChangeNotifierProxyProvider<AuthProvider, ChatProvider>(
           create: (_) => ChatProvider(),
           update: (_, auth, chat) {
@@ -32,11 +32,15 @@ class IstatisApp extends StatelessWidget {
         ),
       ],
       child: ServicesProvider(
-        child: MaterialApp(
-        title: 'iStatis',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.dark,
-        home: const AuthGate(),
+        child: Consumer<ThemeProvider>(
+          builder: (context, themeProvider, _) => MaterialApp(
+            title: 'iStatis',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: themeProvider.themeMode,
+            home: const AuthGate(),
+          ),
         ),
       ),
     );
