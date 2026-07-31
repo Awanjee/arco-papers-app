@@ -81,17 +81,28 @@ class _ProductCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 56,
+                  height: 56,
+                  clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: AppColorsResolver.accentSoft(context),
                     borderRadius: AppRadius.rMd,
                   ),
-                  child: Icon(
-                    Icons.inventory_2_outlined,
-                    size: 19,
-                    color: AppColorsResolver.link(context),
-                  ),
+                  child: product.imageAsset != null
+                      ? Image.asset(
+                          product.imageAsset!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            Icons.inventory_2_outlined,
+                            size: 19,
+                            color: AppColorsResolver.link(context),
+                          ),
+                        )
+                      : Icon(
+                          Icons.inventory_2_outlined,
+                          size: 19,
+                          color: AppColorsResolver.link(context),
+                        ),
                 ),
                 const SizedBox(width: 13),
                 Expanded(

@@ -21,6 +21,7 @@ class Product {
   final int minOrder;
   final List<PricingTier> pricingTiers;
   final IconData? icon;
+  final String? imageAsset;
 
   const Product({
     required this.id,
@@ -31,5 +32,6 @@ class Product {
     required this.minOrder,
     required this.pricingTiers,
     this.icon,
+    this.imageAsset,
   });
 }

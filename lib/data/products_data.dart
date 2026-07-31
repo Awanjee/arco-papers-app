@@ -7,6 +7,7 @@ final List<Product> catalogueProducts = [
     id: 'env_c4',
     name: 'C4 Envelope',
     category: 'Envelopes',
+    imageAsset: 'assets/images/products/envelopes.png',
     description:
         '229x324mm. Fits A4 documents without folding. '
         'Popular with hospitals and law firms.',
@@ -22,6 +23,7 @@ final List<Product> catalogueProducts = [
     id: 'env_c5',
     name: 'C5 Envelope',
     category: 'Envelopes',
+    imageAsset: 'assets/images/products/envelopes.png',
     description:
         '162x229mm. Fits A4 documents folded once. '
         'Popular with banks and universities.',
@@ -36,6 +38,7 @@ final List<Product> catalogueProducts = [
     id: 'env_dl',
     name: 'DL Envelope',
     category: 'Envelopes',
+    imageAsset: 'assets/images/products/envelopes.png',
     description:
         '110x220mm. Standard letter envelope, folded twice. '
         'Most common corporate envelope.',
@@ -52,6 +55,7 @@ final List<Product> catalogueProducts = [
     id: 'paper_a4_70',
     name: 'A4 Paper 70gsm',
     category: 'Paper',
+    imageAsset: 'assets/images/products/paper.png',
     description:
         '500 sheets per ream. Standard quality for '
         'everyday printing and photocopying.',
@@ -67,6 +71,7 @@ final List<Product> catalogueProducts = [
     id: 'paper_a4_80',
     name: 'A4 Paper 80gsm',
     category: 'Paper',
+    imageAsset: 'assets/images/products/paper.png',
     description:
         '500 sheets per ream. Premium quality, recommended '
         'for laser printers and official documents.',
@@ -84,6 +89,7 @@ final List<Product> catalogueProducts = [
     id: 'fc_standard',
     name: 'A4 File Carrier Standard',
     category: 'File Carriers',
+    imageAsset: 'assets/images/products/file_carriers.png',
     description:
         'Standard A4 file carrier. Suitable for offices, '
         'schools and general document storage.',
@@ -99,6 +105,7 @@ final List<Product> catalogueProducts = [
     id: 'fc_heavy',
     name: 'A4 File Carrier Heavy Duty',
     category: 'File Carriers',
+    imageAsset: 'assets/images/products/file_carriers.png',
     description:
         'Heavy duty A4 file carrier. Popular with government '
         'departments and hospitals for patient records.',
